@@ -11,9 +11,13 @@ fn main() {
     let mut sum = 0;
     let mut winners = vec![];
 
-    for line in input.lines() {
+    let lines = input.lines();
+    let mut cards = vec![1];
+
+    for (card_no, line) in lines.enumerate() {
         if line.len() == 0 {continue;}
-        let mut shift = None;
+        if cards.len() <= card_no {cards.resize_with(card_no + 1, || 1)}
+        let mut card_won = 1;
         let mut symbols = line.split_whitespace().skip(2).peekable();
         while symbols.peek() != Some(&"|") {
             let idx = usize::from_str_radix(symbols.next().unwrap(), 10).expect("");
@@ -23,20 +27,15 @@ fn main() {
         symbols.next();
         while symbols.peek() != None  {
             if values[usize::from_str_radix(symbols.next().unwrap(), 10).expect("")] {
-                shift = match shift {
-                    None => Some(0),
-                    Some(n) => Some(n+1)
-                }
+                if card_no + card_won >= cards.len() {cards.resize_with(card_no + card_won + 1, || 1)}
+                cards[card_no + card_won] += cards[card_no];
+                card_won += 1;
             }
         }
         while winners.len() > 0 {
             values[winners.pop().unwrap()] = false;
         }
-        println!("{:?}", shift);
-        sum += match shift {
-            None => 0,
-            Some(n) => 1 << n,
-        }
+        sum += cards[card_no];
     }
     println!("{:?}", sum);
 }
