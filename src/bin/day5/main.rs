@@ -22,7 +22,6 @@ fn main() {
     println!("minimal location {:?}", seeds[0]);
 }
 
-/// vals must be sorted
 /// fails if any map ranges overlap
 fn map_values<'a>(map: &mut impl Iterator<Item = &'a str>, vals: &mut Vec<(u64, u64)>) {
     let mut og_vals = Vec::new();
