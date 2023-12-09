@@ -11,7 +11,7 @@ fn main() {
     histories.next();
     let mut sum = 0;
     for var in histories {
-        let mut data: Vec<i64> = var.split_whitespace().map(|s| i64::from_str_radix(s, 10).expect("")).collect();
+        let mut data: Vec<i64> = var.split_whitespace().map(|s| i64::from_str_radix(s, 10).expect("")).rev().collect();
         sum += extrapolate(&mut data);
     }
     println!("{:?}", sum);
