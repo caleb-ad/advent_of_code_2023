@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::vec;
 use std::{io::Read, rc::Rc};
 use std::collections::HashMap;
 
@@ -19,6 +20,12 @@ impl std::fmt::Debug for Node {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Cycle {
+    offset: usize,
+    len: usize,
+}
+
 fn main() {
     let mut input = String::from("\n");
     let _ = std::fs::File::open("src/bin/day8/input.txt")
@@ -33,6 +40,7 @@ fn main() {
 
     lines.next();
 
+    let mut ghosts = vec![];
     for line in lines {
         let mut symbols = line
             .split(['=', '(', ')', ',', ' '])
@@ -47,23 +55,44 @@ fn main() {
             n.borrow_mut().R = Some(right);
         } else {
             nodes.insert(node, Rc::new(RefCell::new(Node{name: String::from(node), L: Some(left), R: Some(right)})));
-        };
+        }
+
+        if node.chars().nth(2).unwrap() == 'A' { ghosts.push(nodes.get(node).unwrap().clone()) }
     }
 
-    let mut current = nodes.get("AAA").unwrap().clone();
-    let mut steps: usize = 0;
-    while current.borrow().name != "ZZZ" {
-        // if steps < 100 { println!("{:#?}", current.borrow()); }
-        // println!("{:?}", steps);
-        current = match directions.next() {
-            Some(b'L') => current.borrow().L.as_ref().unwrap().clone(),
-            Some(b'R') => current.borrow().R.as_ref().unwrap().clone(),
-            _ => panic!("invalid direction")
-        };
+    for g in ghosts {
+        println!("{:?}", get_cycle(&mut directions.clone(), g));
+    }
+}
+
+//iterator must start at beginning
+//assume each start leads to exactly one Z
+fn get_cycle(d: &mut impl Iterator<Item = u8>, mut s: Rc<RefCell<Node>>) -> Cycle {
+    let offset = advance_to_z(d, &mut s);
+    s = advance(d.next(), &s);
+    let len = advance_to_z(d, &mut s) + 1;
+    Cycle{offset, len}
+}
+
+fn advance_to_z(d: &mut impl Iterator<Item = u8>, s: &mut Rc<RefCell<Node>>) -> usize {
+    let mut steps = 0;
+    while s.borrow().name.chars().nth(2).unwrap() != 'Z' {
+        *s = advance(d.next(), s);
         steps += 1;
     }
+    steps
+}
 
-    println!("steps: {:?}", steps);
+fn advance(d: Option<u8>, s: &Rc<RefCell<Node>>) -> Rc<RefCell<Node>> {
+    match d {
+        Some(b'L') => s.borrow().L.as_ref().unwrap().clone(),
+        Some(b'R') => s.borrow().R.as_ref().unwrap().clone(),
+        _ => panic!("invalid direction")
+    }
+}
+
+fn finished(pos: &Vec<Rc<RefCell<Node>>>) -> bool {
+    pos.iter().find(|a| a.borrow().name.chars().nth(2).unwrap() != 'Z').is_none()
 }
 
 fn get_or_insert<'a>(h: &mut HashMap<&'a str, Rc<RefCell<Node>>>, key: &'a str) -> Rc<RefCell<Node>> {
