@@ -4,7 +4,7 @@ type Grid = Vec<Vec<u8>>;
 
 fn main() {
     let mut input = vec![];
-    let _ = std::fs::File::open("src/bin/day14/test.txt").expect("").read_to_end(&mut input);
+    let _ = std::fs::File::open("src/bin/day14/input.txt").expect("").read_to_end(&mut input);
 
     let mut grid: Grid = input.split(|b| *b == b'\n').map(|s| s.to_vec()).collect();
 
